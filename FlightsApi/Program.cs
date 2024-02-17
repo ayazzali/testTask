@@ -1,9 +1,26 @@
+using Flights.BusinessLayer.FlightsSearch;
+using Flights.BusinessLayer.FlightsSearch.Models;
+using Flights.BusinessLayer.FlightsSearch.Registers;
+using Flights.Providers.MongoCacheProvider;
+using Flights.Providers.MongoCacheProvider.Configs;
+using Flights.Providers.MongoCacheProvider.Registers;
+using Flights.Providers.OneSearchProvider;
+using Flights.Providers.OneSearchProvider.Registers;
+using Microsoft.AspNetCore.Mvc;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddFlightsSearchProvider();
+builder.Services.AddMongoCacheProvider();
+builder.Services.AddOneSearchProvider();
+builder.Services.Configure<RouteDbSettings>(builder.Configuration.GetSection("RouteDatabase"));
+builder.Services.AddSingleton<IMongoCacheService, MongoCacheService>();
+builder.Services.AddHttpClient();
+
 
 var app = builder.Build();
 
@@ -16,29 +33,20 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
+app.MapPost("/flights/search", async ([FromBody] SearchRequest request, [FromServices] ISearchService searchService,
+        CancellationToken cancellationToken) =>
     {
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-            .ToArray();
-        return forecast;
+        return await searchService.SearchAsync(request, cancellationToken);
     })
-    .WithName("GetWeatherForecast")
+    .WithName("FlightsSearch")
+    .WithOpenApi();
+
+app.MapGet("/flights/ping", async ([FromServices] ISearchService searchService,
+        CancellationToken cancellationToken) =>
+    {
+        return await searchService.IsAvailableAsync(cancellationToken);
+    })
+    .WithName("FlightsPing")
     .WithOpenApi();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

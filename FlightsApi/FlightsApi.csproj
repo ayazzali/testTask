@@ -14,13 +14,13 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
+        <Content Include="..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\FlightsCore\FlightsCore.csproj" />
+        <ProjectReference Include="..\FlightsCore\FlightsCore.csproj"/>
     </ItemGroup>
 
 </Project>

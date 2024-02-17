@@ -1,4 +1,6 @@
-namespace TestTask;
+using Flights.BusinessLayer.FlightsSearch.Models;
+
+namespace Flights.BusinessLayer.FlightsSearch;
 
 public interface ISearchService
 {
